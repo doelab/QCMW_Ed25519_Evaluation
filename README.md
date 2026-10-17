@@ -72,13 +72,13 @@ python3 snr_leakage_calc.py
 
 *Expected Output:*
 
-- QCMW: peak $|t| = 4.39 \implies \text{SNR} = 3.85 \times 10^{-4}$ ($-34.14\text{ dB}$)
-- Single-core: peak $|t| = 11.16 \implies \text{SNR} = 2.49 \times 10^{-3}$ ($-26.04\text{ dB}$)
-- Empirical attenuation: $8.10\text{ dB}$ ($4\text{-core model}: 6.00\text{ dB}$, stagger gain: $2.10\text{ dB}$).
+- QCMW: peak `|t| = 4.39` → `SNR = 3.85 × 10⁻⁴` (-34.14 dB, 95% bootstrap CI [-34.57, -33.75] dB)
+- Single-core: peak `|t| = 11.16` → `SNR = 2.49 × 10⁻³` (-26.04 dB)
+- Empirical attenuation: **8.10 dB** (independent-core heuristic: 6.02 dB, residual margin: 2.08 dB consistent with activity superposition and staggering).
 
-### 4. TVLA Welch t-Test
+### 4. TVLA Welch t-Test and Bootstrap Confidence Intervals
 
-Run Welch's two-sample t-test against the standard $|t| < 4.5$ boundary and the trace-wide Mini-p / Sidak threshold over $M = 189{,}790$ samples ($37{,}958\text{ cycles} \times 5\text{ samples/cycle}$):
+Run Welch's two-sample t-test against the standard `|t| = 4.5` reference boundary and the trace-wide Sidak multiple-comparison threshold over M = 189,790 samples (37,958 cycles × 5 samples/cycle):
 
 ```bash
 cd sca_analysis
@@ -87,13 +87,15 @@ python3 tvla_welch_ttest.py
 
 *Expected Output:*
 
-- Standard threshold: $|t| < 4.50$ (Standard TVLA: PASS)
-- Mini-p / Sidak threshold ($\alpha = 10^{-5}$): $|t_{\text{crit}}| = 6.56$ (Mini-p multiple comparison: PASS)
-- Measured peak $|t| = 4.38 \approx 4.39$.
+- Standard reference threshold: `|t| = 4.50`
+- Sidak multiple-comparison threshold (α = 10⁻⁵): `|t_crit| = 6.56`
+- Measured peak `|t| = 4.39`
+- Bootstrap 95% CI for peak `|t|`: [4.18, 4.59] (spanning 4.5, characterizing finite-campaign attenuation)
+- Wilson 95% CI for classification accuracy: [50.42%, 51.04%]
 
-### 5. Calibrated CPA Simulation
+### 5. Calibrated First-Order Leakage and Trace-Averaging Model
 
-Simulate correlation power analysis and trace requirements calibrated to the board noise floor ($\sigma \approx 54.66$, $-34.8\text{ dB}$ model SNR):
+Simulate binary leakage and trace requirements calibrated to the board noise floor (σ ≈ 55, -34.8 dB model SNR) targeting scalar bit k₂₅₄ at the coprocessor datapath boundary:
 
 ```bash
 cd sca_analysis
@@ -102,16 +104,21 @@ python3 cpa_simulation.py
 
 *Expected Output:*
 
-- Per-trace accuracy: **50.73%** (theory), matching random guessing within 0.73 percentage points.
-- Peak $|t|$ statistic: $4.39$.
-- Minimum Traces to Disclosure (MTD):
-  - $\text{MTD}_{90\\%} = 4{,}907$ traces
-  - $\text{MTD}_{99\\%} = 16{,}169$ traces
-  - $\text{MTD}_{99.9\\%} = 28{,}531$ traces
+- Per-trace accuracy: **50.73%** (0.73 percentage points above chance, 95% Wilson score interval [50.42%, 51.04%]).
+- Peak `|t|` statistic: **4.39**.
+- Minimum Traces to Disclosure (MTD) under repeated identical scalar inputs:
+  - **MTD (90% confidence)** ≈ 4,907 traces
+  - **MTD (99% confidence)** ≈ 16,169 traces
+  - **MTD (99.9% confidence)** ≈ 28,531 traces
 - Output plots saved in `sca_analysis/cpa_results/`.
 
 ---
 
-## Hardware Specifications
+## Hardware Specifications and Data Availability
 
-Side-channel acquisition runs on a Digilent Nexys A7-100T development board hosting an Artix-7 FPGA (`synthesis_constraints/nexys_a7_100t.xdc`). High-frequency timing closure targets Xilinx Virtex UltraScale+ at 384.62 MHz (`synthesis_constraints/ultrascale_plus_384mhz.xdc`, $T = 2.60\text{ ns}$, WNS = 0.00 ns). Dedicated rectangular Pblocks (`synthesis_constraints/pblock_quadcore_floorplan.xdc`) isolate each of the four CIOS cores into separate DSP columns without spatial overlap.
+Side-channel acquisition was evaluated on a Digilent Nexys A7-100T development board hosting an Artix-7 FPGA (`synthesis_constraints/nexys_a7_100t.xdc`). High-frequency timing closure targets AMD Virtex UltraScale+ at 384.62 MHz (`synthesis_constraints/ultrascale_plus_384mhz.xdc`, T = 2.60 ns, WNS = 0.00 ns). Dedicated rectangular Pblocks (`synthesis_constraints/pblock_quadcore_floorplan.xdc`) isolate each of the four CIOS cores into separate DSP columns without spatial overlap.
+
+**Artifact Availability:**
+- **Public (in this repository):** Evaluation datasets, scalar test vectors, Python analysis and statistical verification pipelines, Vivado constraints, floorplanning scripts, and RFC 8032 functional models.
+- **Available on request:** Synthesizable RTL source files, top-level simulation testbenches, and raw oscilloscope binary trace archives (>15 GB) are available from the authors upon request.
+
