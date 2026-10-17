@@ -1,6 +1,6 @@
 # QCMW Ed25519 Evaluation Artifacts
 
-This repository provides evaluation artifacts, synthesis constraints, side-channel analysis scripts, and functional verification testbenches for:
+This repository provides evaluation artifacts, synthesis constraints, and side-channel analysis scripts for:
 
 > **"First-Order Side-Channel Leakage Suppression in Ed25519 via Quad-Core Wavefront Scheduling"**  
 > *Microprocessors and Microsystems (Elsevier)*
