@@ -1,5 +1,5 @@
 # cpa_simulation.py
-# CPA key-recovery and TVLA assessment against QCMW Curve25519 engine.
+# Calibrated first-order binary leakage and trace-averaging simulation (MTD assessment).
 # Leakage model: Wave 1 at initial Montgomery ladder step (base point u=9)
 #   k_{254}=0 -> HW(AA,BB,DA,CB) = 5 (no cswap)
 #   k_{254}=1 -> HW(AA,BB,DA,CB) = 7 (cswap)
@@ -71,10 +71,10 @@ def main():
     noise_std  = delta_tvla * np.sqrt(N_PER_GROUP / 2.0) / TVLA_THRESHOLD * 1.10
     acc_theory = sp_norm.cdf(1.0 / noise_std)
 
-    print("Running QCMW CPA and TVLA simulation...")
+    print("Running QCMW calibrated leakage and TVLA simulation...")
     print(f"HW(k=0)={HW_K0:.0f}, HW(k=1)={HW_K1:.0f}, threshold={THR:.1f}")
     print(f"noise_std = {noise_std:.2f} HW units")
-    print(f"Per-trace CPA accuracy (theory): {acc_theory:.4f} ({acc_theory:.2%})")
+    print(f"Per-trace classification accuracy (theory): {acc_theory:.4f} ({acc_theory:.2%})")
     t_expected = delta_tvla * np.sqrt(N_PER_GROUP / 2.0) / noise_std
     print(f"Expected TVLA |t| at {N_PER_GROUP:,} traces/group: {t_expected:.3f}")
 
