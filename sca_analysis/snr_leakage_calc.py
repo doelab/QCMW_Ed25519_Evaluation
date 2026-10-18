@@ -22,7 +22,9 @@ def main():
 
     print(f"QCMW: peak |t| = {t_qcmw:.2f} -> SNR = {snr_lin_qcmw:.2e} ({snr_db_qcmw:.2f} dB)")
     print(f"Single-core: peak |t| = {t_sc:.2f} -> SNR = {snr_lin_sc:.2e} ({snr_db_sc:.2f} dB)")
-    print(f"Empirical attenuation: {delta_snr:.2f} dB (4-core model: 6.00 dB, stagger gain: {delta_snr - 6:.2f} dB)")
+    th_gain = 10.0 * np.log10(4.0)  # 6.02 dB independent-core noise heuristic
+    res_gain = delta_snr - th_gain   # 2.08 dB residual margin
+    print(f"Empirical attenuation: {delta_snr:.2f} dB (4-core model: {th_gain:.2f} dB, residual margin: {res_gain:.2f} dB)")
 
 if __name__ == "__main__":
     main()
