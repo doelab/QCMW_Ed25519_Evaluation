@@ -64,7 +64,7 @@ def montgomery_ladder(u, k_clamped):
 # Input: Ladder State (X2, Z2, X3, Z3), Initial u
 # Output: (X_rec, Y_rec, Z_rec) Projective
 def y_coordinate_recovery(X2, Z2, X3, Z3, u):
-    # Mapping Algorithm 2 (Okeya-Sakurai) to 4 Cores
+    # Mapping Algorithm 4 (Okeya-Sakurai Hardware Schedule) to 4 Cores
     
     # [Round 1]
     # Core 1: T1 = u * Z2
