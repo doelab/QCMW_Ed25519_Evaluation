@@ -1,9 +1,8 @@
-import sys
+import hashlib
 
-# Constants matching Hardware
+# Constants matching Curve25519 hardware parameters
 P = 2**255 - 19
 A_mont = 486662
-A_ed = P - 1  # -1 mod P = A_ed for Curve25519
 I = pow(2, (P - 1) // 4, P)
 
 # --- Hardware Primitives (Simulated) ---
@@ -156,38 +155,25 @@ def final_map_cpu(X, Y, Z, u, sign_x_orig):
     return x_ed, y_ed
 
 # --- Main Test Wrapper ---
-def sign_hardware_model(sk_bytes, msg):
-    # 1. CPU: Hashing & Clamping
-    import hashlib
+def sign_hardware_model(sk_bytes, msg=b""):
+    # 1. Hashing & Clamping (RFC 8032)
     h = hashlib.sha512(sk_bytes[:32]).digest()
     a = int.from_bytes(h[:32], "little")
     a &= (1 << 254) - 8
     a |= (1 << 254)
     
-    # Hardware acceleration usually does R = r*G and S = r + k*a
-    # This model focuses on the Point Multiplication P = k*G (Verification part)
-    # Or R = r*G (Signing part)
-    
-    # Let's verify standard Point Mul: P = a * G
-    # G (Edwards) -> u (Montgomery)
-    # G_ed = (x, y) = (1511222134..., 4631683569...)
-    # u = (1 + y) / (1 - y)
+    # Base point G in Montgomery u-coordinate form
     Gy = 4 * pow(5, P - 2, P) % P
     u = (1 + Gy) * pow(1 - Gy, P - 2, P) % P
     
-    # 2. FPGA: Montgomery Ladder
+    # 2. Montgomery Ladder execution on FPGA core
     X2, Z2, X3, Z3 = montgomery_ladder(u, a)
     
-    # 3. FPGA: Y-Recovery
+    # 3. Projective Y-coordinate recovery on FPGA core (Algorithm 4)
     X_rec, Y_rec, Z_rec = y_coordinate_recovery(X2, Z2, X3, Z3, u)
     
-    # 4. CPU: Final Inverse
+    # 4. Final inversion and mapping to Edwards affine form
     x_final, y_final = final_map_cpu(X_rec, Y_rec, Z_rec, u, 0)
-    
-    # Correct x sign
-    if x_final % 2 != 0: # Gx is odd? No, need to check
-         pass # Okeya-Sakurai recovers X^2 roughly, sign handling is complex in X-only
-         # For pure verification, Y is sufficient to check signature
     
     return x_final, y_final
 
