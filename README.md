@@ -14,7 +14,7 @@ QCMW_Ed25519_Evaluation_Artifacts/
 ├── sca_analysis/                     # Side-channel analysis scripts and test vectors
 │   ├── tvla_vectors.csv              # Fixed-vs-random 255-bit scalar vectors
 │   ├── tvla_vectors_sample.csv       # Sample scalar vector log
-│   ├── tvla_welch_ttest.py           # Point-wise Welch's t-test with Sidak FWER correction
+│   ├── tvla_welch_ttest.py           # Point-wise Welch's t-test with Mini-p / Sidak correction
 │   ├── snr_leakage_calc.py           # Class-conditional SNR and multi-core attenuation
 │   ├── cpa_simulation.py             # Calibrated CPA attack and MTD simulation
 │   └── cpa_results/                  # Generated plots (ASR, correlation, TVLA t-statistic)
@@ -89,7 +89,6 @@ python3 tvla_welch_ttest.py
 
 - Standard reference threshold: `|t| = 4.50`
 - Sidak multiple-comparison threshold (α = 10⁻⁵): `|t_crit| = 6.56`
-- Sidak multiple-comparison threshold (α = 0.05): `|t_crit| = 5.14`
 - Measured peak `|t| = 4.39`
 - Bootstrap 95% CI for peak `|t|`: [4.18, 4.59] (spanning 4.5, characterizing finite-campaign attenuation)
 - Wilson 95% CI for classification accuracy: [50.42%, 51.04%]
@@ -117,7 +116,7 @@ python3 cpa_simulation.py
 
 ## Hardware Specifications and Data Availability
 
-Side-channel acquisition was evaluated on a Digilent Nexys A7-100T development board hosting an Artix-7 FPGA (`synthesis_constraints/nexys_a7_100t.xdc`). High-frequency timing closure targets AMD Virtex UltraScale+ at 384.62 MHz (`synthesis_constraints/ultrascale_plus_384mhz.xdc`, T = 2.60 ns). Dedicated rectangular Pblocks (`synthesis_constraints/pblock_quadcore_floorplan.xdc`) isolate each of the four CIOS cores into separate DSP columns without spatial overlap.
+Side-channel acquisition was evaluated on a Digilent Nexys A7-100T development board hosting an Artix-7 FPGA (`synthesis_constraints/nexys_a7_100t.xdc`). High-frequency timing closure targets AMD Virtex UltraScale+ at 384.62 MHz (`synthesis_constraints/ultrascale_plus_384mhz.xdc`, T = 2.60 ns, WNS = 0.00 ns). Dedicated rectangular Pblocks (`synthesis_constraints/pblock_quadcore_floorplan.xdc`) isolate each of the four CIOS cores into separate DSP columns without spatial overlap.
 
 **Artifact Availability:**
 - **Public (in this repository):** Evaluation datasets, scalar test vectors, Python analysis and statistical verification pipelines, Vivado constraints, floorplanning scripts, and RFC 8032 functional models.

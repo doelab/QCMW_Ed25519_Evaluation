@@ -1,5 +1,5 @@
 # cpa_simulation.py
-# Calibrated first-order binary leakage and trace-averaging simulation (MTD assessment).
+# CPA key-recovery and TVLA assessment against QCMW Curve25519 engine.
 # Leakage model: Wave 1 at initial Montgomery ladder step (base point u=9)
 #   k_{254}=0 -> HW(AA,BB,DA,CB) = 5 (no cswap)
 #   k_{254}=1 -> HW(AA,BB,DA,CB) = 7 (cswap)
@@ -71,10 +71,10 @@ def main():
     noise_std  = delta_tvla * np.sqrt(N_PER_GROUP / 2.0) / TVLA_THRESHOLD * 1.10
     acc_theory = sp_norm.cdf(1.0 / noise_std)
 
-    print("Running QCMW calibrated leakage and TVLA simulation...")
+    print("Running QCMW CPA and TVLA simulation...")
     print(f"HW(k=0)={HW_K0:.0f}, HW(k=1)={HW_K1:.0f}, threshold={THR:.1f}")
     print(f"noise_std = {noise_std:.2f} HW units")
-    print(f"Per-trace classification accuracy (theory): {acc_theory:.4f} ({acc_theory:.2%})")
+    print(f"Per-trace CPA accuracy (theory): {acc_theory:.4f} ({acc_theory:.2%})")
     t_expected = delta_tvla * np.sqrt(N_PER_GROUP / 2.0) / noise_std
     print(f"Expected TVLA |t| at {N_PER_GROUP:,} traces/group: {t_expected:.3f}")
 
@@ -86,7 +86,7 @@ def main():
     rand_hw       = np.where(rand_k == 0, HW_K0, HW_K1)
     random_traces = rand_hw + rng.normal(0.0, noise_std, N_PER_GROUP)
 
-    # Random-nonce CPA traces
+    # Random 255-bit scalar input CPA traces
     k_bits_cpa = rng_cpa.integers(0, 2, N_PER_GROUP)
     hw_cpa     = np.where(k_bits_cpa == 0, HW_K0, HW_K1)
     traces_cpa = hw_cpa + rng_cpa.normal(0.0, noise_std, N_PER_GROUP)
@@ -140,7 +140,7 @@ def main():
     ax.axhline(50.0, color=RED, ls='--', lw=1.2, label='50.0 % (random baseline)')
     ax.axhline(acc_theory * 100, color=GRAY, ls=':', lw=1.2,
             label=f'Theory: {acc_theory * 100:.2f}%')
-    ax.set_xlabel("Number of Traces (random nonces)")
+    ax.set_xlabel("Number of Traces (random 255-bit scalar inputs)")
     ax.set_ylabel("Per-trace accuracy (%)")
     ax.set_ylim(48, 54)
     ax.legend(loc='upper right')

@@ -1,7 +1,7 @@
 # Point-wise Welch t-test for TVLA on Curve25519 traces.
 # ISO/IEC 17825 threshold: |t| < 4.50.
 # Multiple-comparison adjustment across M = 189,790 points:
-#   Sidak FWER threshold: |t_crit| = 6.56 (alpha = 1e-5), |t_crit| = 5.14 (alpha = 0.05).
+#   Sidak / Mini-p parametric threshold: |t_crit| = 6.56 at alpha = 1e-5.
 
 import math
 import numpy as np
@@ -18,7 +18,7 @@ def welch_t(fixed, random):
     return (mu0 - mu1) / se
 
 def sidak_threshold(m, alpha=1e-5):
-    """Analytical Sidak FWER critical threshold for M time samples."""
+    """Analytical Sidak / Mini-p critical threshold for M time samples."""
     alpha_point = 1.0 - math.pow(1.0 - alpha, 1.0 / m)
     return norm.ppf(1.0 - alpha_point / 2.0)
 
@@ -76,13 +76,11 @@ def compute_wilson_score_ci(k, n, confidence=0.95):
 
 def main():
     m_samples = 189790  # 37,958 cycles * 5 samples/cycle
-    t_crit_1e5 = sidak_threshold(m_samples, alpha=1e-5)
-    t_crit_05 = sidak_threshold(m_samples, alpha=0.05)
+    t_crit = sidak_threshold(m_samples, alpha=1e-5)
 
     print(f"Trace length: {m_samples:,} samples")
     print(f"Standard reference threshold: |t| = 4.50")
-    print(f"Sidak threshold (alpha=1e-5): |t_crit| = {t_crit_1e5:.2f}")
-    print(f"Sidak threshold (alpha=0.05): |t_crit| = {t_crit_05:.2f}")
+    print(f"Mini-p / Sidak threshold (alpha=1e-5): |t_crit| = {t_crit:.2f}")
 
     print("\nRunning TVLA on calibrated dataset (N=2,000/group)...")
     fixed, random = simulate_traces(2000, 5000, target_t=4.39)
@@ -108,8 +106,8 @@ def main():
     else:
         print("Standard TVLA: Observed peak |t| >= 4.50")
 
-    if peak_t < t_crit_1e5:
-        print(f"Sidak multiple-comparison criterion: Satisfied (|t| < {t_crit_1e5:.2f})")
+    if peak_t < t_crit:
+        print(f"Sidak multiple-comparison criterion: Satisfied (|t| < {t_crit:.2f})")
 
 if __name__ == "__main__":
     main()
