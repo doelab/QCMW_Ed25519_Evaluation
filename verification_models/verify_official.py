@@ -14,6 +14,30 @@ def encode_point(x, y):
 
 def main():
     print("Verifying QCMW design model against official Ed25519 reference (http://ed25519.cr.yp.to)...")
+    # 1. Canonical RFC 8032 Test Vector 1 Verification (Deterministic)
+    print("\n--- Test 1: Canonical RFC 8032 Test Vector 1 ---")
+    sk_rfc = binascii.unhexlify("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60")
+    pk_exp_rfc = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+    
+    t0 = time.time()
+    pk_official_rfc = OfficialGolden.publickey(sk_rfc)
+    t_ref_rfc = (time.time() - t0) * 1000.0
+    
+    x_des_rfc, y_des_rfc = sign_hardware_model(sk_rfc, b"")
+    pk_design_rfc = encode_point(x_des_rfc, y_des_rfc)
+    
+    print(f"Secret seed: {sk_rfc.hex()}")
+    print(f"Official PK: {pk_official_rfc.hex()} ({t_ref_rfc:.2f} ms)")
+    print(f"Design PK:   {pk_design_rfc.hex()}")
+    
+    if pk_design_rfc.hex() == pk_exp_rfc == pk_official_rfc.hex():
+        print("Result: PASS (exact 32-byte match with RFC 8032 Test Vector 1)")
+    else:
+        print("Result: FAIL")
+        return
+
+    # 2. Random Vector Verification
+    print("\n--- Test 2: Random Key Verification ---")
     sk_bytes = os.urandom(32)
     print(f"Secret seed: {sk_bytes.hex()}")
 
